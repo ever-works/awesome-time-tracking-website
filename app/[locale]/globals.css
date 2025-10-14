@@ -4,6 +4,74 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  /* Custom input component using Tailwind utilities */
+  .custom-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm transition-all duration-300 ease-in-out outline-none;
+  }
+  
+  .custom-input:hover {
+    @apply border-gray-500;
+  }
+  
+  .custom-input:focus {
+    @apply border-blue-500 shadow-[0_0_0_2px_rgba(59,130,246,0.2)] bg-white;
+  }
+  
+  .custom-input:disabled {
+    @apply bg-gray-50 text-gray-500 cursor-not-allowed;
+  }
+  
+  .custom-input.error {
+    @apply border-red-500;
+  }
+  
+  .custom-input.error:focus {
+    @apply border-red-500 shadow-[0_0_0_2px_rgba(239,68,68,0.2)];
+  }
+  
+  /* Dark mode styles using Tailwind dark: prefix */
+  .dark .custom-input {
+    @apply bg-gray-800 text-white border-gray-600;
+  }
+  
+  .dark .custom-input:hover {
+    @apply border-gray-500;
+  }
+  
+  .dark .custom-input:focus {
+    @apply bg-gray-800 text-white;
+  }
+  
+  .dark .custom-input:disabled {
+    @apply bg-gray-700 text-gray-400;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 @layer base {
   :root {
@@ -28,13 +96,74 @@
     --light-theme-dark: #E7E7EA;
 
     /* Theme variables - defaults to everworks theme */
-    --theme-primary: #0070f3;
+    /* Theme variables - defaults to everworks theme */
+    --theme-primary: #0548f1;
+    --theme-primary-rgb: 77, 136, 202;
+    --theme-primary-50: #eff6ff;
+    --theme-primary-100: #dbeafe;
+    --theme-primary-200: #bfdbfe;
+    --theme-primary-300: #93c5fd;
+    --theme-primary-400: #60a5fa;
+    --theme-primary-500: #3b82f6;
+    --theme-primary-600: #2563eb;
+    --theme-primary-700: #1d4ed8;
+    --theme-primary-800: #1e40af;
+    --theme-primary-900: #1e3a8a;
+    --theme-primary-950: #172554;
+    
+    /* Theme Secondary - Green palette */
     --theme-secondary: #00c853;
-    --theme-accent: #0056b3;
+    --theme-secondary-50: #e8f5e9;
+    --theme-secondary-100: #c8e6c9;
+    --theme-secondary-200: #a5d6a7;
+    --theme-secondary-300: #81c784;
+    --theme-secondary-400: #66bb6a;
+    --theme-secondary-500: #4caf50;
+    --theme-secondary-600: #43a047;
+    --theme-secondary-700: #388e3c;
+    --theme-secondary-800: #2e7d32;
+    --theme-secondary-900: #1b5e20;
+    --theme-secondary-950: #0d3810;
+    
+    /* Theme Accent - Darker Blue palette */
+    --theme-accent: #3d70ef;
+    --theme-accent-50: #e3f2fd;
+    --theme-accent-100: #bbdefb;
+    --theme-accent-200: #90caf9;
+    --theme-accent-300: #64b5f6;
+    --theme-accent-400: #42a5f5;
+    --theme-accent-500: #2196f3;
+    --theme-accent-600: #1e88e5;
+    --theme-accent-700: #1976d2;
+    --theme-accent-800: #1565c0;
+    --theme-accent-900: #0d47a1;
+    --theme-accent-950: #082a5e;
+    
     --theme-background: #ffffff;
     --theme-surface: #f8f9fa;
     --theme-text: #1a1a1a;
     --theme-text-secondary: #6c757d;
+
+    /* Tiptap Variables */
+    --tt-collaboration-carets-label: #111827;
+    --link-text-color: #3b82f6;
+    --thread-text: #111827;
+    --placeholder-color: #9ca3af;
+    --thread-bg-color: #fef3c7;
+    --tiptap-ai-insertion-color: #2563eb;
+    --tt-cursor-color: #707070;
+    --tt-selection-color: rgba(59, 130, 246, 0.3);
+    --tt-brand-color-400: #60a5fa;
+    --tt-brand-color-500: #3b82f6;
+    --tt-brand-color-600: #2563eb;
+    --tt-color-yellow-base: #fbbf24;
+    --tt-color-yellow-inc-2: #fef3c7;
+    --tt-color-yellow-dec-2: #fbbf24;
+    --tt-gray-light-900: #111827;
+    --tt-gray-dark-100: #f3f4f6;
+    --tt-radius-xs: 0.25rem;
+    --tt-radius-md: 0.375rem;
+    --tt-cursor-size: 1px;
   }
 
   .dark {
@@ -73,7 +202,6 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   
-  /* Amélioration des transitions pour le changement de thème */
   *, *::before, *::after {
     transition-property: background-color, border-color, color, fill, stroke;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -85,6 +213,71 @@
   /* Theme-based utility classes */
   .bg-theme-primary {
     background-color: var(--theme-primary);
+  }
+  .bg-theme-primary-50 {
+    background-color: var(--theme-primary-50);
+  }
+  .bg-theme-primary-100 {
+    background-color: var(--theme-primary-100);
+  }
+  .bg-theme-primary-200 {
+    background-color: var(--theme-primary-200);
+  }
+  .bg-theme-primary-300 {
+    background-color: var(--theme-primary-300);
+  }
+  .bg-theme-primary-400 {
+    background-color: var(--theme-primary-400);
+  }
+  .bg-theme-primary-500 {
+    background-color: var(--theme-primary-500);
+  }
+  .bg-theme-primary-600 {
+    background-color: var(--theme-primary-600);   
+  }
+  .bg-theme-primary-700 {
+    background-color: var(--theme-primary-700);
+  }
+  .bg-theme-primary-800 {
+    background-color: var(--theme-primary-800);
+  }
+  .to-theme-primary {
+    --tw-gradient-to: var(--theme-primary) var(--tw-gradient-to-position);
+  }
+  .from-theme-primary {
+    --tw-gradient-from: var(--theme-primary) var(--tw-gradient-from-position);
+  }
+
+ .from-theme-primary-900\/30 {
+  --tw-gradient-from: rgba(var(--theme-primary), 0.3) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgba(var(--theme-primary), 0.3) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+
+  .border-theme-primary-200 {
+    border-color: var(--theme-primary-200);
+  }
+  .border-theme-primary-300 {
+    border-color: var(--theme-primary-300);
+  }
+  .border-theme-primary-400 {
+    border-color: var(--theme-primary-400);
+  }
+  .border-theme-primary-500 {
+    border-color: var(--theme-primary-500);
+  }
+  .hover\:border-theme-primary:hover {
+    --tw-border-opacity: 1;
+    border-color: rgb(59 130 246 / var(--tw-border-opacity, 1)) /* #3b82f6 */;
+  }
+  .hover\:border-theme-primary-500:hover {
+    --tw-border-opacity: 1;
+    border-color: rgb(59 130 246 / var(--tw-border-opacity, 1)) /* #3b82f6 */;
+  }
+  .hover\:border-theme-primary-400:hover {
+    --tw-border-opacity: 1;
+    border-color: rgb(59 130 246 / var(--tw-border-opacity, 1)) /* #3b82f6 */;
   }
   
   .bg-theme-secondary {
@@ -101,6 +294,39 @@
   
   .text-theme-primary {
     color: var(--theme-primary);
+  }
+  .text-theme-primary-50 {
+    color: var(--theme-primary-50);
+  }
+  .text-theme-primary-100 {
+    color: var(--theme-primary-100);
+  }
+  .text-theme-primary-200 {
+    color: var(--theme-primary-200);
+  }
+  .text-theme-primary-300 {
+    color: var(--theme-primary-300);
+  }
+  .text-theme-primary-400 {
+    color: var(--theme-primary-400);
+  }
+  .text-theme-primary-500 {
+    color: var(--theme-primary-500);
+  }
+  .text-theme-primary-600 {
+    color: var(--theme-primary-600);
+  }
+  .text-theme-primary-700 {
+    color: var(--theme-primary-700);
+  }
+  .text-theme-primary-800 {
+    color: var(--theme-primary-800);
+  }
+  .text-theme-primary-900 {
+    color: var(--theme-primary-900);
+  }
+  .text-theme-primary-950 {
+    color: var(--theme-primary-950);
   }
   
   .text-theme-secondary {
@@ -131,6 +357,19 @@
     border-color: var(--theme-accent);
   }
   
+  /* Opacity variants */
+  .bg-theme-primary-10 {
+    background-color: rgba(var(--theme-primary-rgb), 0.1);
+  }
+
+  .bg-theme-primary-5 {
+    background-color: rgba(var(--theme-primary-rgb), 0.05);
+  }
+  
+  .bg-theme-primary-20 {
+    background-color: rgba(var(--theme-primary-rgb), 0.2);
+  }
+  
   /* Hover variants */
   .hover\:bg-theme-primary:hover {
     background-color: var(--theme-primary);
@@ -155,6 +394,7 @@
   .hover\:border-theme-secondary:hover {
     border-color: var(--theme-secondary);
   }
+
 }
 
 /* Enhanced animations for modern UI */
@@ -334,7 +574,7 @@
   animation-delay: 4s;
 }
 
-/* Animation pour le changement de thème */
+/* Animation for theme change */
 @keyframes theme-fade {
   0% {
     opacity: 0;
@@ -350,7 +590,7 @@
   animation: theme-fade 0.3s ease-out forwards;
 }
 
-/* Effet de pulse pour le thème actif */
+/* Pulse effect for active theme */
 @keyframes theme-pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3);
@@ -449,6 +689,44 @@
               linear-gradient(135deg, #667eea, #764ba2) border-box;
 }
 
+.container {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 1rem;
+    padding-left: 1rem
+}
+
+@media (min-width: 640px) {
+    .container {
+        max-width:640px
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width:768px
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        max-width:1024px
+    }
+}
+
+@media (min-width: 1280px) {
+    .container {
+        max-width:1280px
+    }
+}
+
+@media (min-width: 1536px) {
+    .container {
+        max-width:1536px
+    }
+}
+
 /* Loading animations */
 @keyframes skeleton {
   0% {
@@ -484,7 +762,478 @@
 
 /* Enhanced focus states */
 .focus-ring:focus {
+  outline: none !important;
+}
+
+/* Elegant scroll animations */
+@keyframes scroll-indicator {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes smooth-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes elegant-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes scroll-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scroll-progress {
+  from {
+    stroke-dasharray: 0, 100;
+  }
+  to {
+    stroke-dasharray: 100, 100;
+  }
+}
+
+/* Scroll utility classes */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+.animate-scroll-indicator {
+  animation: scroll-indicator 0.3s ease-out;
+}
+
+.animate-smooth-bounce {
+  animation: smooth-bounce 1s ease-in-out;
+}
+
+.animate-elegant-pulse {
+  animation: elegant-pulse 2s ease-in-out infinite;
+}
+
+.animate-scroll-fade-in {
+  animation: scroll-fade-in 0.6s ease-out forwards;
+}
+
+/* Enhanced glassmorphism for scroll elements */
+.glass-scroll {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.dark .glass-scroll {
+  background: rgba(17, 24, 39, 0.8);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+/* Elegant transition utilities */
+.transition-elegant {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-bounce {
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Custom select dropdown styles with theme colors */
+select option:checked,
+select option:hover {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+}
+
+/* For dark mode */
+.dark select option:checked,
+.dark select option:hover {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+}
+
+/* Style for the selected option in the dropdown */
+select option:focus {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+}
+
+/* Additional styles for better compatibility */
+select option:active {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+}
+
+/* Webkit specific styles for better browser support */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  select option:checked {
+    background: var(--theme-primary) linear-gradient(0deg, var(--theme-primary) 0%, var(--theme-primary) 100%);
+    color: white !important;
+  }
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+[data-slot="cursor"] {
+  position: absolute !important;
+  pointer-events: none !important;
+  background-color: hsl(var(--primary));
+}
+
+/* HeroUI Input Focus Overrides */
+[data-slot="input"]:focus,
+[data-slot="input"]:focus-within {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+[data-slot="input"]:focus-visible {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+[data-slot="input-wrapper"]:focus-within {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+[data-slot="input-wrapper"]:focus-visible {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Override HeroUI default focus colors */
+.focus-within\:border-primary:focus-within {
+  border-color: var(--theme-primary) !important;
+}
+
+.focus\:border-primary:focus {
+  border-color: var(--theme-primary) !important;
+}
+
+.focus-visible\:border-primary:focus-visible {
+  border-color: var(--theme-primary) !important;
+}
+
+.focus-within\:ring-primary:focus-within {
+  --tw-ring-color: var(--theme-primary) !important;
+}
+
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--theme-primary) !important;
+}
+
+.focus-visible\:ring-primary:focus-visible {
+  --tw-ring-color: var(--theme-primary) !important;
+}
+
+/* =====================
+     TIPTAP EDITOR STYLES
+     ===================== */
+
+/* Core Editor Styles */
+.tiptap.ProseMirror {
+  white-space: pre-wrap;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
-  border-color: #667eea;
+  caret-color: var(--tt-cursor-color);
+  font-family: "DM Sans", sans-serif;
+}
+
+/* Ensure each top-level node has relative positioning */
+.tiptap.ProseMirror > * {
+  position: relative;
+}
+
+/* Paragraph spacing */
+.tiptap.ProseMirror p:not(:first-child) {
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: normal;
+  margin-top: 20px;
+}
+
+/* Selection styles */
+.tiptap.ProseMirror:not(.readonly):not(.ProseMirror-hideselection) {
+  ::selection {
+    background-color: var(--tt-selection-color);
+    color: inherit;
+  }
+
+  *::selection {
+    background-color: var(--tt-selection-color);
+    color: inherit;
+  }
+
+  .selection::selection {
+    background: transparent;
+  }
+}
+
+.tiptap.ProseMirror .selection {
+  display: inline;
+  background-color: var(--tt-selection-color);
+  border-radius: 2px;
+}
+
+/* Selected node styles */
+.tiptap.ProseMirror .ProseMirror-selectednode:not(img):not(pre):not(.react-renderer) {
+  border-radius: var(--tt-radius-md);
+  background-color: var(--tt-selection-color);
+}
+
+.tiptap.ProseMirror .ProseMirror-hideselection {
+  caret-color: transparent;
+}
+
+/* Resize cursor */
+.tiptap.ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+
+/* Text decoration inheritance for spans */
+.tiptap.ProseMirror a span {
+  text-decoration: underline;
+}
+
+.tiptap.ProseMirror s span {
+  text-decoration: line-through;
+}
+
+.tiptap.ProseMirror u span {
+  text-decoration: underline;
+}
+
+.tiptap.ProseMirror .tiptap-ai-insertion {
+  color: var(--tiptap-ai-insertion-color);
+}
+
+/* Links */
+.tiptap.ProseMirror a {
+  color: var(--link-text-color);
+  text-decoration: underline;
+}
+
+/* Mentions */
+.tiptap.ProseMirror [data-type="mention"] {
+  display: inline-block;
+  color: var(--tt-brand-color-500);
+}
+
+/* Emoji */
+.tiptap.ProseMirror [data-type="emoji"] img {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  cursor: text;
+}
+
+/* Placeholder styles */
+.is-empty:not(.with-slash)[data-placeholder]:has(
+  > .ProseMirror-trailingBreak:only-child
+)::before {
+  content: attr(data-placeholder);
+}
+
+.is-empty.with-slash[data-placeholder]:has(
+  > .ProseMirror-trailingBreak:only-child
+)::before {
+  content: "Write, type '/' for commands…";
+  font-style: italic;
+}
+
+.is-empty[data-placeholder]:has(
+  > .ProseMirror-trailingBreak:only-child
+)::before {
+  pointer-events: none;
+  height: 0;
+  position: absolute;
+  width: 100%;
+  text-align: inherit;
+  left: 0;
+  right: 0;
+}
+
+.is-empty[data-placeholder]:has(> .ProseMirror-trailingBreak)::before {
+  color: var(--placeholder-color);
+}
+
+/* Drop cursor */
+.prosemirror-dropcursor-block,
+.prosemirror-dropcursor-inline {
+  background: var(--tt-brand-color-400) !important;
+  border-radius: 0.25rem;
+  margin-left: -1px;
+  margin-right: -1px;
+  width: 100%;
+  height: 0.188rem;
+  cursor: grabbing;
+}
+
+/* Collaboration carets */
+.tiptap.ProseMirror .collaboration-carets__caret {
+  border-right: 1px solid transparent;
+  border-left: 1px solid transparent;
+  pointer-events: none;
+  margin-left: -1px;
+  margin-right: -1px;
+  position: relative;
+  word-break: normal;
+}
+
+.tiptap.ProseMirror .collaboration-carets__label {
+  color: var(--tt-collaboration-carets-label);
+  border-radius: 0.25rem;
+  border-bottom-left-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  left: -1px;
+  line-height: 1;
+  padding: 0.125rem 0.375rem;
+  position: absolute;
+  top: -1.3em;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Thread styles */
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--inline {
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  color: var(--thread-text);
+  border-bottom: 2px dashed var(--tt-color-yellow-base);
+  font-weight: 600;
+}
+
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--inline.tiptap-thread--selected,
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--inline.tiptap-thread--hovered {
+  background-color: var(--thread-bg-color);
+  border-bottom-color: transparent;
+}
+
+/* Block thread styles with images */
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--block:has(img) {
+  outline: 0.125rem solid var(--tt-color-yellow-base);
+  border-radius: var(--tt-radius-xs);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--block:has(img).tiptap-thread--selected {
+  outline-width: 0.25rem;
+  outline-color: var(--tt-color-yellow-base);
+}
+
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--block:has(img).tiptap-thread--hovered {
+  outline-width: 0.25rem;
+}
+
+/* Block thread styles without images */
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--block:not(:has(img)) {
+  border-radius: 0.25rem;
+  border-bottom: 0.125rem dashed var(--tt-color-yellow-base);
+  padding-bottom: 0.5rem;
+  outline: 0.25rem solid transparent;
+}
+
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--block:not(:has(img)).tiptap-thread--hovered,
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--block:not(:has(img)).tiptap-thread--selected {
+  background-color: var(--tt-color-yellow-base);
+  outline-color: var(--tt-color-yellow-base);
+}
+
+/* Resolved thread styles */
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--resolved.tiptap-thread--inline.tiptap-thread--selected {
+  background-color: var(--tt-color-yellow-base);
+  border-color: transparent;
+  opacity: 0.5;
+}
+
+/* React renderer specific styles */
+.tiptap.ProseMirror .tiptap-thread.tiptap-thread--block:has(.react-renderer) {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
+/* Image upload loader styles */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Button loading state */
+.tiptap-button-text {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Disabled state for upload button */
+button[disabled] .tiptap-button-text {
+  opacity: 0.6;
+}
+
+.dark [data-slot="input"]:focus,
+.dark [data-slot="input"]:focus-within {
+  border-color: var(--theme-primary) !important;
+}
+
+.dark [data-slot="input"]:focus-visible {
+  border-color: var(--theme-primary) !important;
+}
+
+.dark [data-slot="input-wrapper"]:focus-within {
+  border-color: var(--theme-primary) !important;
+}
+
+.dark [data-slot="input-wrapper"]:focus-visible {
+  border-color: var(--theme-primary) !important;
 }

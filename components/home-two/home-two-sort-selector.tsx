@@ -1,17 +1,26 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { useFilters } from "@/hooks/use-filters";
 import { ChevronDown } from "lucide-react";
+import { SortOption } from "../filters/types";
 
-export function HomeTwoSortSelector() {
+interface ISortSelector {
+  setSortBy?: (sort: SortOption) => void;
+  sortBy?: SortOption;
+  className?: string;
+}
+
+export function HomeTwoSortSelector({ sortBy, setSortBy, className }: ISortSelector) {
   const t = useTranslations();
-  const { sortBy, setSortBy } = useFilters();
   return (
-    <div className="relative inline-block w-full max-w-xs">
+    <div className={`relative inline-block ${className || ""}`}>
       <select
+        
         value={sortBy}
-        onChange={(e) => setSortBy(e.target.value)}
-        className="appearance-none bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1.5 pr-10 text-sm text-blue-600 dark:text-blue-400 w-full"
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+          setSortBy && setSortBy(e.target.value as SortOption)
+        }
+        className="appearance-none bg-gray-100 dark:bg-gray-800 border-2 border-theme-primary-500/50 dark:border-theme-primary-500/50 rounded-lg px-2 sm:px-3 py-1.5 pr-8 sm:pr-10 text-xs sm:text-sm text-gray-900 dark:text-white font-medium w-full min-w-[100px] sm:min-w-[120px] focus:outline-none focus:ring-2 focus:ring-theme-primary-500 focus:border-theme-primary-500 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-theme-primary-600 dark:hover:border-theme-primary-400"
+        aria-label="Sort by"
       >
         <option value="popularity">{t("listing.POPULARITY")}</option>
         <option value="name-asc">{t("listing.NAME_A_Z")}</option>
@@ -19,7 +28,7 @@ export function HomeTwoSortSelector() {
         <option value="date-desc">{t("listing.NEWEST")}</option>
         <option value="date-asc">{t("listing.OLDEST")}</option>
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+      <ChevronDown className="pointer-events-none absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-theme-primary-500" />
     </div>
   );
 }

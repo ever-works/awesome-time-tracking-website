@@ -1,6 +1,6 @@
 import { compare, hash } from "bcryptjs";
 import Credentials from "next-auth/providers/credentials";
-import { getUserByEmail, logActivity } from "../db/queries";
+import { getUserByEmail, logActivity, getClientAccountByEmail, verifyClientPassword, getClientProfileById } from "../db/queries";
 import { ActivityType } from "../db/schema";
 
 const SALT_ROUNDS = 10;
@@ -37,24 +37,53 @@ export const credentialsProvider = Credentials({
   },
   authorize: async (credentials) => {
     try {
-      const foundUser = await getUserByEmail(credentials.email as string);
+      const email = credentials.email as string;
+      const password = credentials.password as string;
 
-      const isPasswordValid = await comparePasswords(
-        credentials.password as string,
-        foundUser.passwordHash
-      );
+      const foundUser = await getUserByEmail(email);
+      
+      if (foundUser && foundUser.passwordHash) {
+        
+        const isPasswordValid = await comparePasswords(password, foundUser.passwordHash);
 
-      if (!isPasswordValid) {
-        // to rethrow the error from the catch block
-        throw new Error();
+        if (isPasswordValid) {
+          void logActivity(ActivityType.SIGN_IN, foundUser.id, 'user').catch(() => {});
+
+          return {
+            ...foundUser,
+            isClient: false,
+            isAdmin: true,
+          };
+        }
       }
 
-      logActivity(foundUser.id, ActivityType.SIGN_IN);
+      const clientAccount = await getClientAccountByEmail(email);
+      
+      if (clientAccount) {
+        const isClientPasswordValid = await verifyClientPassword(email, password);
+        
+        if (isClientPasswordValid) {
+          const clientProfile = await getClientProfileById(clientAccount.userId);
+          if (!clientProfile) {
+            throw new Error("Invalid email or password. Please try again.");
+          }
+          const clientUser = {
+            id: clientProfile.id,
+            name: clientProfile.name || clientProfile.displayName,
+            email: clientProfile.email,
+            image: null,
+            isClient: true,
+            isAdmin: false,
+          };
+          void logActivity(ActivityType.SIGN_IN, clientProfile.id, 'client').catch(() => {});
+          return clientUser;
+        }
+      }
 
-      return foundUser;
-    } catch (error: any) {
-      console.error(error);
       throw new Error("Invalid email or password. Please try again.");
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+      throw new Error(error.message || "Invalid email or password. Please try again.");
     }
   },
 });

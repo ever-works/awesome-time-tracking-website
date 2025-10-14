@@ -1,77 +1,94 @@
 "use client";
 
 import { ChevronDown, Layout, Sparkles } from "lucide-react";
-import { useMemo, useCallback } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
-import { LayoutHome, useLayoutTheme } from "@/components/context/LayoutThemeContext";
+import { useMemo, useCallback, useState, useEffect, useRef, useId } from "react";
+import {
+  LayoutHome,
+  useLayoutTheme,
+} from "@/components/context/LayoutThemeContext";
 import { useTheme } from "next-themes";
 import Image from "next/image";
+import SelectPaginationType from "./ui/select-pagination-type";
+import { useTranslations } from "next-intl";
 
-const getLayoutMap = (isDark: boolean) => ({
-  Home_1: { 
-    name: "Home 1", 
-    description: "Classic layout with traditional design",
-    color: "blue",
-    icon: <Layout className="w-4 h-4" />,
-    preview: (
-      <div className="w-full h-32 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-xl overflow-hidden border-2 border-blue-300 dark:border-blue-600 relative group shadow-lg hover:shadow-xl transition-all duration-300">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <Image
-          src={isDark ? "/home-1.png" : "/home-light-1.png"}
-          alt="Home 1 Layout Preview"
-          fill
-          className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-          sizes="(max-width: 768px) 100vw, 300px"
-        />
-        <div className="absolute top-2 right-2 bg-blue-500/90 text-white px-2 py-1 rounded-lg text-xs font-medium">
-          Active
+const getLayoutMap = (isDark: boolean, t: any) =>
+  ({
+    Home_One: {
+      name: "Home 1",
+      description: t("CLASSIC_LAYOUT_DESC"),
+      color: "blue",
+      icon: <Layout className="w-4 h-4" />,
+      preview: (
+        <div className="relative w-full h-40 rounded-xl overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-theme-primary-100/20 to-theme-primary-200/20 dark:from-theme-primary-900/20 dark:to-theme-primary-800/20"></div>
+          <Image
+            src={isDark ? "/home-1.png" : "/home-light-1.png"}
+            alt="Home 1 Layout Preview"
+            fill
+            className="object-cover object-top transition-all duration-700 group-hover:scale-110"
+            sizes="(max-width: 768px) 100vw, 300px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+            <span className="text-white text-sm font-semibold drop-shadow-lg">
+              {t("CLASSIC_DESIGN")}
+            </span>
+            <div className="bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-medium border border-white/30">
+              {t("VIEW_DEMO")}
+            </div>
+          </div>
         </div>
-      </div>
-    )
-  },
-  Home_2: { 
-    name: "Home 2", 
-    description: "Grid layout with organized cards",
-    color: "purple",
-    icon: <Sparkles className="w-4 h-4" />,
-    preview: (
-      <div className="w-full h-32 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-xl overflow-hidden border-2 border-purple-300 dark:border-purple-600 relative group shadow-lg hover:shadow-xl transition-all duration-300">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <Image
-          src={isDark ? "/home-2.png" : "/home-light-2.png"}
-          alt="Home 2 Layout Preview"
-          fill
-          className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-          sizes="(max-width: 768px) 100vw, 300px"
-        />
-        <div className="absolute top-2 right-2 bg-purple-500/90 text-white px-2 py-1 rounded-lg text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          Preview
+      ),
+    },
+    Home_Two: {
+      name: "Home 2",
+      description: t("GRID_LAYOUT_DESC"),
+      color: "purple",
+      icon: <Sparkles className="w-4 h-4" />,
+      preview: (
+        <div className="relative w-full h-40 rounded-xl overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-pink-100/20 dark:from-purple-900/20 dark:to-pink-900/20"></div>
+          <Image
+            src={isDark ? "/home-2.png" : "/home-light-2.png"}
+            alt="Home 2 Layout Preview"
+            fill
+            className="object-cover object-top transition-all duration-700 group-hover:scale-110"
+            sizes="(max-width: 768px) 100vw, 300px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+            <span className="text-white text-sm font-semibold drop-shadow-lg">
+              {t("MODERN_GRID")}
+            </span>
+            <div className="bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-medium border border-white/30">
+              {t("VIEW_DEMO")}
+            </div>
+          </div>
         </div>
-      </div>
-    )
-  },
-  // Home_3: { 
-  //   name: "Home 3", 
-  //   description: "Card-based layout with visual elements",
-  //   color: "emerald",
-  //   icon: <Zap className="w-4 h-4" />,
-  //   preview: (
-  //     <div className="w-full h-32 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 rounded-xl overflow-hidden border-2 border-emerald-300 dark:border-emerald-600 relative group shadow-lg hover:shadow-xl transition-all duration-300">
-  //       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-  //       <Image
-  //         src={isDark ? "/home-3.png" : "/home-3.png"}
-  //         alt="Home 3 Layout Preview"
-  //         fill
-  //         className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-  //         sizes="(max-width: 768px) 100vw, 300px"
-  //       />
-  //       <div className="absolute top-2 right-2 bg-emerald-500/90 text-white px-2 py-1 rounded-lg text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-  //         Preview
-  //       </div>
-  //     </div>
-  //   )
-  // },
-}) as const;
+      ),
+    },
+    // Home_3: {
+    //   name: "Home 3",
+    //   description: "Card-based layout with visual elements",
+    //   color: "emerald",
+    //   icon: <Zap className="w-4 h-4" />,
+    //   preview: (
+    //     <div className="w-full h-32 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 rounded-xl overflow-hidden border-2 border-emerald-300 dark:border-emerald-600 relative group shadow-lg hover:shadow-xl transition-all duration-300">
+    //       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    //       <Image
+    //         src={isDark ? "/home-3.png" : "/home-3.png"}
+    //         alt="Home 3 Layout Preview"
+    //         fill
+    //         className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+    //         sizes="(max-width: 768px) 100vw, 300px"
+    //       />
+    //       <div className="absolute top-2 right-2 bg-emerald-500/90 text-white px-2 py-1 rounded-lg text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+    //         Preview
+    //       </div>
+    //     </div>
+    //   )
+    // },
+  }) as const;
 
 interface LayoutSwitcherProps {
   inline?: boolean;
@@ -80,161 +97,176 @@ interface LayoutSwitcherProps {
 export function LayoutSwitcher({ inline = false }: LayoutSwitcherProps) {
   const { layoutHome, setLayoutHome } = useLayoutTheme();
   const { theme, resolvedTheme } = useTheme();
-  
+  const t = useTranslations("common");
+  const [isOpen, setIsOpen] = useState(false);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const panelId = useId();
+
   // Determine if we're in dark mode
-  const isDark = resolvedTheme === 'dark' || (theme === 'system' && resolvedTheme === 'dark');
-  
+  const isDark =
+    resolvedTheme === "dark" ||
+    (theme === "system" && resolvedTheme === "dark");
+
   // Create layout map based on theme
-  const layoutMap = useMemo(() => getLayoutMap(isDark), [isDark]);
+  const layoutMap = useMemo(() => getLayoutMap(isDark, t), [isDark, t]);
+
+  // Handle outside click and Escape key to close popover
+  useEffect(() => {
+    const handlePointerDownOutside = (event: PointerEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+
+    if (isOpen) {
+      // Defer to next tick to avoid closing from the opening event
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('pointerdown', handlePointerDownOutside, { capture: true });
+        document.addEventListener('keydown', handleKeyDown);
+      }, 0);
+
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('pointerdown', handlePointerDownOutside, { capture: true } as any);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen]);
 
   // Memoize current layout data
-  const currentLayout = useMemo(
-    () => layoutMap[layoutHome as keyof typeof layoutMap],
-    [layoutMap, layoutHome]
-  );
+  const currentLayout = useMemo(() => {
+    const isValidLayout = (key: string): key is keyof typeof layoutMap => {
+      return key in layoutMap;
+    };
+    if (isValidLayout(layoutHome)) {
+      return layoutMap[layoutHome];
+    }
+    return layoutMap.Home_One;
+  }, [layoutMap, layoutHome]);
 
   // Memoize available layouts
   const availableLayouts = useMemo(
-    () => Object.entries(layoutMap).map(([key, layout]) => ({
-      key: key as LayoutHome,
-      ...layout,
-      isActive: key === layoutHome
-    })),
+    () =>
+      Object.entries(layoutMap).map(([key, layout]) => ({
+        key: key as LayoutHome,
+        ...layout,
+        isActive: key === layoutHome,
+      })),
     [layoutMap, layoutHome]
   );
 
-  const changeLayout = useCallback((layout: LayoutHome) => {
-    if (layout === layoutHome) return;
-    setLayoutHome(layout);
-  }, [layoutHome, setLayoutHome]);
-
-  const getColorClasses = (color: string, isActive: boolean) => {
-    if (isActive) {
-      switch (color) {
-        case 'blue':
-          return 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 border-blue-400 dark:border-blue-500 shadow-blue-200 dark:shadow-blue-900/50';
-        case 'purple':
-          return 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 border-purple-400 dark:border-purple-500 shadow-purple-200 dark:shadow-purple-900/50';
-        case 'emerald':
-          return 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/50 border-emerald-400 dark:border-emerald-500 shadow-emerald-200 dark:shadow-emerald-900/50';
-        default:
-          return 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950/50 dark:to-gray-900/50 border-gray-400 dark:border-gray-500';
-      }
-    } else {
-      switch (color) {
-        case 'blue':
-          return 'bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-blue-100 dark:hover:shadow-blue-900/30';
-        case 'purple':
-          return 'bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-purple-100 dark:hover:shadow-purple-900/30';
-        case 'emerald':
-          return 'bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 border-gray-200 dark:border-gray-600 hover:border-emerald-300 dark:hover:border-emerald-600 hover:shadow-emerald-100 dark:hover:shadow-emerald-900/30';
-        default:
-          return 'bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500';
-      }
-    }
-  };
-
-  const getIconClasses = (color: string, isActive: boolean) => {
-    if (isActive) {
-      switch (color) {
-        case 'blue':
-          return 'bg-blue-500 text-white';
-        case 'purple':
-          return 'bg-purple-500 text-white';
-        case 'emerald':
-          return 'bg-emerald-500 text-white';
-        default:
-          return 'bg-gray-500 text-white';
-      }
-    } else {
-      switch (color) {
-        case 'blue':
-          return 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400';
-        case 'purple':
-          return 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400';
-        case 'emerald':
-          return 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400';
-        default:
-          return 'bg-gray-100 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400';
-      }
-    }
-  };
-
-  const getTextClasses = (color: string, isActive: boolean) => {
-    if (isActive) {
-      switch (color) {
-        case 'blue':
-          return { title: 'text-blue-700 dark:text-blue-300', desc: 'text-blue-600 dark:text-blue-400' };
-        case 'purple':
-          return { title: 'text-purple-700 dark:text-purple-300', desc: 'text-purple-600 dark:text-purple-400' };
-        case 'emerald':
-          return { title: 'text-emerald-700 dark:text-emerald-300', desc: 'text-emerald-600 dark:text-emerald-400' };
-        default:
-          return { title: 'text-gray-700 dark:text-gray-300', desc: 'text-gray-600 dark:text-gray-400' };
-      }
-    } else {
-      return { title: 'text-gray-700 dark:text-white', desc: 'text-gray-500 dark:text-gray-400' };
-    }
-  };
-
-  const getBadgeClasses = (color: string) => {
-    switch (color) {
-      case 'blue':
-        return 'bg-blue-500 text-white';
-      case 'purple':
-        return 'bg-purple-500 text-white';
-      case 'emerald':
-        return 'bg-emerald-500 text-white';
-      default:
-        return 'bg-gray-500 text-white';
-    }
-  };
+  const changeLayout = useCallback(
+    (layout: LayoutHome) => {
+      if (layout === layoutHome) return;
+      setLayoutHome(layout);
+      setIsOpen(false); // Close popover after selection
+    },
+    [layoutHome, setLayoutHome]
+  );
 
   const layoutContent = (
-    <div className="space-y-4">
-      {availableLayouts.map(({ key, name, description, color, icon, preview, isActive }) => {
-        const textClasses = getTextClasses(color, isActive);
-        return (
-          <button
-            key={key}
-            className={`w-full p-5 rounded-2xl transition-all duration-300 border-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02] ${getColorClasses(color, isActive)}`}
-            onClick={() => changeLayout(key)}
-          >
-            <div className="space-y-4">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl transition-colors duration-300 ${getIconClasses(color, isActive)}`}>
-                    {icon}
-                  </div>
-                  <div className="text-left">
-                    <span className={`font-bold text-lg transition-colors duration-300 ${textClasses.title}`}>
-                      {name}
-                    </span>
-                    <p className={`text-xs transition-colors duration-300 ${textClasses.desc}`}>
-                      {description}
-                    </p>
-                  </div>
+    <div className="flex flex-col space-y-4">
+      {availableLayouts.map(
+        ({ key, name, description, icon, preview, isActive }) => {
+          return (
+            <button
+              key={key}
+              className={`relative w-full p-6 rounded-2xl transition-all duration-500 transform hover:scale-[1.01] ${
+                isActive
+                  ? "bg-gradient-to-br from-theme-primary-50/50 via-white to-theme-primary-100/30 dark:from-gray-800 dark:via-gray-900 dark:to-theme-primary-950/30 border-2 border-theme-primary-400/50 dark:border-theme-primary-500/50 shadow-xl shadow-theme-primary-200/30 dark:shadow-theme-primary-900/20"
+                  : "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 hover:border-theme-primary-300 dark:hover:border-theme-primary-600 shadow-md hover:shadow-xl"
+              }`}
+              onClick={() => changeLayout(key)}
+            >
+              {/* Animated background gradient */}
+              {isActive && (
+                <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-theme-primary-400/10 via-transparent to-theme-primary-500/10 animate-gradient-shift"></div>
                 </div>
-                {isActive && (
-                  <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${getBadgeClasses(color)}`}>
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    Current
+              )}
+
+              <div className="relative space-y-5">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`relative p-3 rounded-2xl transition-all duration-300 ${
+                        isActive
+                          ? "bg-gradient-to-br from-theme-primary-500 to-theme-primary-600 shadow-lg shadow-theme-primary-500/30"
+                          : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 group-hover:from-theme-primary-100 group-hover:to-theme-primary-200 dark:group-hover:from-theme-primary-900/30 dark:group-hover:to-theme-primary-800/30"
+                      }`}
+                    >
+                      <div
+                        className={
+                          isActive
+                            ? "text-white"
+                            : "text-gray-600 dark:text-gray-400 group-hover:text-theme-primary-600 dark:group-hover:text-theme-primary-400"
+                        }
+                      >
+                        {icon}
+                      </div>
+                      {isActive && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <h4
+                        className={`font-bold text-lg transition-colors duration-300 ${
+                          isActive
+                            ? "text-gray-900 dark:text-white"
+                            : "text-gray-700 dark:text-gray-200"
+                        }`}
+                      >
+                        {name}
+                      </h4>
+                      <p
+                        className={`text-sm transition-colors duration-300 ${
+                          isActive
+                            ? "text-theme-primary-600 dark:text-theme-primary-400"
+                            : "text-gray-500 dark:text-gray-400"
+                        }`}
+                      >
+                        {description}
+                      </p>
+                    </div>
                   </div>
-                )}
+                  {isActive && (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-theme-primary-500 to-theme-primary-600 text-white rounded-full text-xs font-semibold shadow-lg animate-pulse">
+                      <svg
+                        className="w-3 h-3"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+{t("CURRENT")}
+                    </div>
+                  )}
+                </div>
+
+                {/* Enhanced Preview with hover effects */}
+                <div className="relative overflow-hidden rounded-xl">
+                  {preview}
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none"></div>
+                  )}
+                  {isActive && (
+                    <div className="absolute inset-0 ring-2 ring-theme-primary-400/50 dark:ring-theme-primary-500/50 rounded-xl pointer-events-none"></div>
+                  )}
+                </div>
               </div>
-              
-              {/* Enhanced Preview */}
-              <div className="relative">
-                {preview}
-                {!isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/10 dark:to-black/10 pointer-events-none"></div>
-                )}
-              </div>
-            </div>
-          </button>
-        );
-      })}
+            </button>
+          );
+        }
+      )}
     </div>
   );
 
@@ -243,38 +275,48 @@ export function LayoutSwitcher({ inline = false }: LayoutSwitcherProps) {
   }
 
   return (
-    <Popover placement="bottom-end" offset={8}>
-      <PopoverTrigger>
-        <button 
-          className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200 shadow-sm hover:shadow-md"
-          aria-label={`Current layout: ${currentLayout.name}`}
-        >
-          <div className="flex items-center gap-2">
-            <Layout className="h-4 w-4 text-blue-500" />
-            <span className="font-medium">Layouts</span>
-          </div>
-          <div className="flex items-center gap-2 px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg">
-            {currentLayout.icon}
-            <span className="font-semibold">{currentLayout.name}</span>
-          </div>
-          <ChevronDown className="h-4 w-4 opacity-60 transition-transform group-data-[open=true]:rotate-180" />
-        </button>
-      </PopoverTrigger>
-      
-      <PopoverContent className="p-4 w-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl backdrop-blur-md">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 pb-3 border-b border-gray-200 dark:border-gray-700">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
-              <Layout className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Choose Layout</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Select your preferred home page design</p>
-            </div>
-          </div>
-          {layoutContent}
+    <div className="mx-1 relative" ref={popoverRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/95 dark:to-gray-800/95 dark:text-white rounded-md hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-800/95 dark:hover:to-gray-700/95 transition-all duration-300 border border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600/70 group overflow-hidden shadow-sm hover:shadow"
+        aria-label={`Current layout: ${currentLayout.name}`}
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? panelId : undefined}
+      >
+        <div className="relative z-10 flex items-center gap-1.5">
+          <Layout className="h-3.5 w-3.5 text-theme-primary-500 dark:text-theme-primary-400" />
+          <span className="font-medium">{t("LAYOUT")}</span>
+          <ChevronDown className={`h-3 w-3 text-gray-500 dark:text-gray-400 transition-all duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
-      </PopoverContent>
-    </Popover>
+      </button>
+
+      {isOpen && (
+        <div
+          id={panelId}
+          className="absolute right-0 mt-2 p-6 w-[500px] max-h-[80vh] overflow-y-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl z-50"
+        >
+          <div className="space-y-5">
+            <div className="flex items-center gap-4 pb-4 border-b border-gray-200/50 dark:border-gray-700/50">
+              <div className="relative">
+                <div className="p-3 bg-gradient-to-br from-theme-primary-500 to-theme-primary-600 rounded-2xl shadow-lg shadow-theme-primary-500/25">
+                  <Layout className="h-6 w-6 text-white" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                  {t("LAYOUT_SELECTION")}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  {t("CHOOSE_PREFERRED_DESIGN")}
+                </p>
+              </div>
+            </div>
+            <SelectPaginationType />
+            {layoutContent}
+          </div>
+        </div>
+      )}
+    </div>
   );
-} 
+}

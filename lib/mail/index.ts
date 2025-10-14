@@ -1,5 +1,6 @@
 import { getCachedConfig } from "../content";
 import { EmailProviderFactory } from "./factory";
+import { getPasswordChangeConfirmationTemplate } from "./templates";
 
 export interface EmailMessage {
   from: string;
@@ -39,12 +40,25 @@ export class EmailService {
   }
 
   async sendVerificationEmail(email: string, token: string): Promise<any> {
-    const confirmLink = `${this.domain}/auth/new-verification?token=${token}`;
+    // Use the new professional template instead of the simple one
+    return this.sendVerificationEmailWithTemplate(email, token);
+  }
+
+  async sendNewsletterSubscriptionEmail(email: string): Promise<any> {
     return this.provider.sendEmail({
       from: this.defaultFrom,
       to: email,
-      subject: "Confirm your email",
-      html: `<p>Click <a href="${confirmLink}">here</a> to confirm email.</p>`,
+      subject: "Welcome to the newsletter",
+      html: `<p>Welcome to the newsletter.</p>`,
+    });
+  }
+
+  async sendNewsletterUnsubscriptionEmail(email: string): Promise<any> {
+    return this.provider.sendEmail({
+      from: this.defaultFrom,
+      to: email,
+      subject: "Unsubscribe from the newsletter",
+      html: `<p>You have been unsubscribed from the newsletter.</p>`,
     });
   }
 
@@ -67,8 +81,104 @@ export class EmailService {
     });
   }
 
+  async sendPasswordChangeConfirmationEmail(email: string, userName?: string, ipAddress?: string, userAgent?: string): Promise<any> {
+    console.log("🎨 Generating email template...");
+
+    const templateData = {
+      customerName: userName,
+      customerEmail: email,
+      changeDate: new Date().toLocaleString(),
+      ipAddress,
+      userAgent,
+      companyUrl: this.domain,
+    };
+
+    console.log("📝 Template data:", templateData);
+
+    const template = getPasswordChangeConfirmationTemplate(templateData);
+
+    console.log("📧 Template generated:", {
+      subject: template.subject,
+      hasHtml: !!template.html,
+      hasText: !!template.text,
+      htmlLength: template.html?.length,
+      textLength: template.text?.length
+    });
+
+    const emailMessage = {
+      from: this.defaultFrom,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    };
+
+    console.log("📮 Sending email with provider:", this.provider.getName());
+    console.log("📬 Email message:", {
+      from: emailMessage.from,
+      to: emailMessage.to,
+      subject: emailMessage.subject,
+      hasHtml: !!emailMessage.html,
+      hasText: !!emailMessage.text
+    });
+
+    try {
+      const result = await this.provider.sendEmail(emailMessage);
+      console.log("✅ Provider send result:", result);
+      return result;
+    } catch (providerError) {
+      console.error("❌ Provider send error:", providerError);
+      throw providerError;
+    }
+  }
+
   async sendCustomEmail(message: EmailMessage): Promise<any> {
     return this.provider.sendEmail(message);
+  }
+
+  async sendAccountCreatedEmail(
+    userName: string,
+    userEmail: string,
+    companyName?: string
+  ): Promise<any> {
+    const { getAccountCreatedTemplate } = await import("./templates");
+    const template = getAccountCreatedTemplate({
+      userName,
+      userEmail,
+      companyName,
+      companyUrl: this.domain,
+    });
+
+    return this.provider.sendEmail({
+      from: this.defaultFrom,
+      to: userEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+  }
+
+  async sendVerificationEmailWithTemplate(
+    email: string,
+    token: string,
+    userName?: string
+  ): Promise<any> {
+    const { getEmailVerificationTemplate } = await import("./templates");
+    const verificationLink = `${this.domain}/auth/new-verification?token=${token}`;
+    const template = getEmailVerificationTemplate({
+      userEmail: email,
+      verificationLink,
+      companyUrl: this.domain,
+      userName,
+    });
+
+    return this.provider.sendEmail({
+      from: this.defaultFrom,
+      to: email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
   }
 
   getProviderName(): string {
@@ -114,7 +224,78 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
   return service.sendPasswordResetEmail(email, token);
 };
 
+export const sendNewsletterSubscriptionEmail = async (email: string) => {
+  const service = await mailService();
+  return service.sendNewsletterSubscriptionEmail(email);
+};
+
+export const sendNewsletterUnsubscriptionEmail = async (email: string) => {
+  const service = await mailService();
+  return service.sendNewsletterUnsubscriptionEmail(email);
+};
+
 export const sendTwoFactorTokenEmail = async (email: string, token: string) => {
   const service = await mailService();
   return service.sendTwoFactorTokenEmail(email, token);
+};
+
+export const sendPasswordChangeConfirmationEmail = async (
+  email: string,
+  userName?: string,
+  ipAddress?: string,
+  userAgent?: string
+) => {
+  console.log("🔧 Creating mail service...");
+
+  try {
+    const service = await mailService();
+    console.log("📬 Mail service created, provider:", service.getProviderName());
+
+    const result = await service.sendPasswordChangeConfirmationEmail(email, userName, ipAddress, userAgent);
+    console.log("📤 Email service result:", result);
+
+    return result;
+  } catch (error) {
+    console.error("💥 Error in sendPasswordChangeConfirmationEmail:", error);
+    throw error;
+  }
+};
+
+export const sendAccountCreatedEmail = async (
+  userName: string,
+  userEmail: string,
+  companyName?: string
+) => {
+  console.log("🔧 Creating mail service for account created email...");
+
+  try {
+    const service = await mailService();
+    console.log("📬 Mail service created, provider:", service.getProviderName());
+
+    const result = await service.sendAccountCreatedEmail(userName, userEmail, companyName);
+    console.log("📤 Account created email sent successfully:", result);
+
+    return result;
+  } catch (error) {
+    console.error("💥 Error in sendAccountCreatedEmail:", error);
+    throw error;
+  }
+};
+
+export const sendVerificationEmailWithTemplate = async (
+  email: string,
+  token: string,
+  userName?: string
+) => {
+
+  try {
+    const service = await mailService();
+
+    const result = await service.sendVerificationEmailWithTemplate(email, token, userName);
+
+    return result;
+  } catch (error) {
+    console.error("💥 Error in sendVerificationEmailWithTemplate:", error);
+    throw error;
+  }
 };

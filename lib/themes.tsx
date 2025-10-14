@@ -13,33 +13,33 @@ export interface ThemeMetadata {
 // Theme preview components
 export const ThemePreviews: Record<ThemeKey, React.ReactNode> = {
   everworks: (
-    <div className="w-12 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded overflow-hidden relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-green-600/20"></div>
+    <div className="w-12 h-8 bg-[#3d70ef] rounded overflow-hidden relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/10"></div>
       <div className="absolute bottom-1 left-1 w-2 h-1 bg-white/80 rounded-sm"></div>
       <div className="absolute top-1 right-1 w-1 h-1 bg-white/60 rounded-full"></div>
     </div>
   ),
   corporate: (
-    <div className="w-12 h-8 bg-gradient-to-br from-slate-600 to-red-500 rounded overflow-hidden relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-700/20 to-red-600/20"></div>
+    <div className="w-12 h-8 bg-[#00c853] rounded overflow-hidden relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/10"></div>
       <div className="absolute bottom-1 left-1 w-2 h-1 bg-white/80 rounded-sm"></div>
       <div className="absolute top-1 right-1 w-1 h-1 bg-white/60 rounded-full"></div>
     </div>
   ),
   material: (
-    <div className="w-12 h-8 bg-gradient-to-br from-purple-600 to-orange-500 rounded overflow-hidden relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-700/20 to-orange-600/20"></div>
+    <div className="w-12 h-8 bg-[#673ab7] rounded overflow-hidden relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/10"></div>
       <div className="absolute bottom-1 left-1 w-2 h-1 bg-white/80 rounded-sm"></div>
       <div className="absolute top-1 right-1 w-1 h-1 bg-white/60 rounded-full"></div>
     </div>
   ),
   funny: (
-    <div className="w-12 h-8 bg-gradient-to-br from-pink-500 to-yellow-400 rounded overflow-hidden relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-pink-600/20 to-yellow-500/20"></div>
+    <div className="w-12 h-8 bg-[#ff4081] rounded overflow-hidden relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/10"></div>
       <div className="absolute bottom-1 left-1 w-2 h-1 bg-white/80 rounded-sm"></div>
       <div className="absolute top-1 right-1 w-1 h-1 bg-white/60 rounded-full"></div>
     </div>
-  ),
+  )
 };
 
 // Complete theme definitions
@@ -67,7 +67,7 @@ export const THEME_DEFINITIONS: Record<ThemeKey, Omit<ThemeMetadata, 'config'>> 
     label: "Funny",
     description: "Playful and vibrant theme with pink and yellow colors",
     preview: ThemePreviews.funny,
-  },
+  }
 };
 
 // Utility to get complete theme metadata

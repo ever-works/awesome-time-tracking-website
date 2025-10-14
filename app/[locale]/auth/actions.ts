@@ -1,7 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { ActivityType, NewUser } from "@/lib/db/schema";
+import { ActivityType, users, clientProfiles } from "@/lib/db/schema";
+import { db } from "@/lib/db/drizzle";
+
 import { redirect } from "next/navigation";
 import {
   validatedAction,
@@ -18,28 +20,34 @@ import {
   getPasswordResetTokenByToken,
   getUserByEmail,
   getVerificationTokenByToken,
-  insertNewUser,
   logActivity,
   softDeleteUser,
   updateUser,
   updateUserPassword,
   updateUserVerification,
+  createClientAccount,
+  getClientAccountByEmail,
+  updateClientProfileName,
 } from "@/lib/db/queries";
 import { signIn } from "@/lib/auth";
 import {
   generatePasswordResetToken,
   generateVerificationToken,
 } from "@/lib/db/tokens";
-import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/mail";
+import { sendPasswordResetEmail, sendVerificationEmailWithTemplate } from "@/lib/mail";
 import { authServiceFactory } from "@/lib/auth/services";
 
 const PASSWORD_MIN_LENGTH = 8;
 const authProviderTypes = ['supabase', 'next-auth', 'both'] as const;
 
+// ReCAPTCHA verification is now handled client-side with React Query
+// See /api/verify-recaptcha route and useRecaptchaVerification hook
+
 const signInSchema = z.object({
   email: z.string().email().min(3).max(255),
   password: z.string().min(PASSWORD_MIN_LENGTH).max(100),
   authProvider: z.enum(authProviderTypes).default('next-auth'),
+  captchaToken: z.string().optional(),
 });
 
 export const signInAction = validatedAction(signInSchema, async (data) => {
@@ -49,7 +57,21 @@ export const signInAction = validatedAction(signInSchema, async (data) => {
     if (error) {
       throw error;
     }
-    return { success: true };
+    
+    // Check if user exists in users table (admin) or client_profiles table (client)
+    const foundUser = await getUserByEmail(data.email);
+    const clientAccount = await getClientAccountByEmail(data.email);
+    
+    if (foundUser) {
+      // User exists in users table = admin
+      return { success: true, redirect: "/admin", preserveLocale: true };
+    } else if (clientAccount) {
+      // User exists in client_profiles table = client
+      return { success: true, redirect: "/client/dashboard", preserveLocale: true };
+    }
+    
+    // Fallback to client dashboard for new users
+    return { success: true, redirect: "/client/dashboard", preserveLocale: true };
   } catch (error) {
     console.error(error);
     return {
@@ -109,58 +131,113 @@ const signUpSchema = z.object({
   email: z.string().email(),
   password: z.string().min(PASSWORD_MIN_LENGTH),
   authProvider: z.enum(authProviderTypes).default('next-auth'),
+  captchaToken: z.string().optional(),
 });
 
 export const signUp = validatedAction(signUpSchema, async (data) => {
-  const { name, email, password } = data;
-  const authService = authServiceFactory(data.authProvider);
-  if (data.authProvider === 'supabase') {
-    const { error } = await authService.signUp(email, password);
-    if (error) {
-      throw error;
+  try {
+    // ReCAPTCHA is already verified on client-side with React Query
+    // No need to re-verify here
+
+    const { name, email, password } = data;
+    const authService = authServiceFactory(data.authProvider);
+    if (data.authProvider === 'supabase') {
+      const { error } = await authService.signUp(email, password);
+      if (error) {
+        throw error;
+      }
     }
-  }
 
-  const existingUser = await getUserByEmail(email).catch(() => null);
+    const passwordHash = await hashPassword(password);
 
-  if (existingUser) {
+    // Normalize email once for consistency across all operations
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Wrap in transaction to ensure atomicity
+    const result = await db.transaction(async (tx) => {
+      // 1) Create user record
+      const userId = crypto.randomUUID();
+      const [user] = await tx.insert(users).values({
+        id: userId,
+        email: normalizedEmail,
+      }).returning();
+      
+      // 2) Create client profile record using transaction
+      const extractedUsername = normalizedEmail.split('@')[0] || 'user';
+      const base = (extractedUsername.replace(/[^a-z0-9_]/gi, '').toLowerCase() || 'user').slice(0, 30);
+      
+      // Generate unique username via onConflictDoNothing + retry
+      let counter = 1;
+      let clientProfile;
+      for (;;) {
+        const candidate = counter === 1 ? base : `${base}${counter}`;
+        const inserted = await tx
+          .insert(clientProfiles)
+          .values({
+            userId: user.id,
+            email: normalizedEmail,
+            name,
+            displayName: name,
+            username: candidate,
+            bio: "Welcome! I'm a new user on this platform.",
+            jobTitle: "User",
+            company: "Unknown",
+            status: "active",
+            plan: "free",
+            accountType: "individual",
+          })
+          .onConflictDoNothing({ target: clientProfiles.username })
+          .returning();
+        if (inserted.length) {
+          clientProfile = inserted[0];
+          break;
+        }
+        counter++;
+        if (counter > 50) throw new Error("Failed to allocate unique username after 50 attempts");
+      }
+      
+      return { user, clientProfile };
+    });
+    
+    const { user, clientProfile } = result;
+
+    // 2) Create credentials account record holding the password hash linked to user
+    const clientAccount = await createClientAccount(user.id, normalizedEmail, passwordHash);
+    if (!clientAccount) {
+      throw new Error("Failed to create client account");
+    }
+
+    // Log activity using the client profile ID
+    		await logActivity(ActivityType.SIGN_UP, clientProfile.id, 'client');
+
+    // // Send welcome email for account creation
+    // try {
+    //   await sendAccountCreatedEmail(name, normalizedEmail);
+    // } catch (emailError) {
+    //   console.error("Failed to send welcome email:", emailError);
+    //   // Don't fail the registration if email fails
+    // }
+
+    const verificationToken = await generateVerificationToken(normalizedEmail);
+    if (verificationToken) {
+      await sendVerificationEmailWithTemplate(normalizedEmail, verificationToken.token, name);
+    }
+
+    await signIn(AuthProviders.CREDENTIALS, {
+      email,
+      password,
+      redirect: false,
+    });
+
+    // Redirect clients to client dashboard
+    return { success: true, redirect: "/client/dashboard", preserveLocale: true };
+  } catch (error) {
+    console.error('SignUp error:', error);
     return {
       error: "Failed to create user. Please try again.",
       ...data,
     };
   }
-
-  const passwordHash = await hashPassword(password);
-
-  const newUser: NewUser = {
-    name,
-    email,
-    passwordHash,
-  };
-
-  const [createdUser] = await insertNewUser(newUser);
-
-  if (!createdUser) {
-    return {
-      error: "Failed to create user. Please try again.",
-      ...data,
-    };
-  }
-
-  logActivity(createdUser.id, ActivityType.SIGN_UP);
-
-  const verificationToken = await generateVerificationToken(email);
-  if (verificationToken) {
-    sendVerificationEmail(email, verificationToken.token);
-  }
-
-  await signIn(AuthProviders.CREDENTIALS, {
-    email,
-    password,
-    redirect: false,
-  });
-
-  return { success: true };
 });
 
 const updatePasswordSchema = z
@@ -203,7 +280,7 @@ export const updatePassword = validatedActionWithUser(
 
     await Promise.all([
       updateUserPassword(newPasswordHash, dbUser.id),
-      logActivity(dbUser.id, ActivityType.UPDATE_PASSWORD),
+      		logActivity(ActivityType.UPDATE_PASSWORD, dbUser.id, 'user'),
     ]);
 
     return { success: "Password updated successfully." };
@@ -232,7 +309,7 @@ export const deleteAccount = validatedActionWithUser(
       return { error: "Incorrect password. Account deletion failed." };
     }
 
-    await logActivity(dbUser.id, ActivityType.DELETE_ACCOUNT);
+    		await logActivity(ActivityType.DELETE_ACCOUNT, dbUser.id, 'user');
 
     await softDeleteUser(dbUser.id);
     const authService = authServiceFactory(provider);
@@ -261,8 +338,9 @@ export const updateAccount = validatedActionWithUser(
       return { error: "User not found" };
     }
     await Promise.all([
-      updateUser({ name, email }, dbUser.id),
-      logActivity(dbUser.id, ActivityType.UPDATE_ACCOUNT),
+      updateUser({ email }, dbUser.id),
+      updateClientProfileName(dbUser.id, name),
+      		logActivity(ActivityType.UPDATE_ACCOUNT, dbUser.id, 'user'),
     ]);
 
     return { success: "Account updated successfully." };
@@ -322,7 +400,7 @@ export const verifyEmailAction = async (token: string) => {
     deleteVerificationToken(existingToken.token),
   ]);
 
-  logActivity(existingUser.id, ActivityType.VERIFY_EMAIL);
+  		logActivity(ActivityType.VERIFY_EMAIL, existingUser.id, 'user');
 
   return { success: true };
 };
@@ -372,7 +450,7 @@ export const newPasswordAction = validatedAction(
       deletePasswordResetToken(data.token),
     ]);
 
-    logActivity(result.userId, ActivityType.UPDATE_PASSWORD);
+    		logActivity(ActivityType.UPDATE_PASSWORD, result.userId, 'user');
 
     return { success: true };
   }

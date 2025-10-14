@@ -5,8 +5,36 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1742902818749,
-      "tag": "0000_serious_lenny_balinger",
+      "when": 1757489070311,
+      "tag": "0000_burly_darkstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1757489200000,
+      "tag": "0001_add_image_to_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757694521166,
+      "tag": "0002_silly_victor_mancha",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1758217839943,
+      "tag": "0003_gigantic_thunderbolts",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1758978903174,
+      "tag": "0004_big_marrow",
       "breakpoints": true
     }
   ]

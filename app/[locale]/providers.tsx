@@ -1,32 +1,39 @@
-"use client";
+'use client';
 
-import type { Config } from "@/lib/content";
-import { HeroUIProvider } from "@heroui/react";
-import { ConfigProvider } from "./config";
-import { ThemeProvider } from "next-themes";
-import ErrorProvider from "@/components/error-provider";
-import { LayoutThemeProvider } from "@/components/context";
+import type { Config } from '@/lib/content';
+import { HeroUIProvider } from '@heroui/react';
+import { ConfigProvider } from './config';
+import {
+	ErrorProvider,
+	FilterProvider,
+	LayoutProvider,
+	QueryClientProvider,
+	ThemeProvider
+} from '@/components/providers';
+import { SessionProvider } from 'next-auth/react';
 
-export function Providers({
-  config,
-  children,
-}: {
-  config: Config;
-  children: React.ReactNode;
-}) {
-  return (
-    <LayoutThemeProvider>
-      <ErrorProvider>
-        <ConfigProvider config={config}>
-          <ThemeProvider
-            enableSystem={true}
-            attribute="class"
-            defaultTheme="system"
-          >
-            <HeroUIProvider>{children}</HeroUIProvider>
-          </ThemeProvider>
-        </ConfigProvider>
-      </ErrorProvider>
-    </LayoutThemeProvider>
-  );
+interface ProvidersProps {
+	config: Config;
+	children: React.ReactNode;
+	dehydratedState?: unknown;
+}
+
+export function Providers({ config, children, dehydratedState }: ProvidersProps) {
+	return (
+		<SessionProvider>
+			<QueryClientProvider dehydratedState={dehydratedState}>
+				<LayoutProvider>
+					<ErrorProvider>
+						<FilterProvider>
+							<ConfigProvider config={config}>
+								<ThemeProvider>
+									<HeroUIProvider>{children}</HeroUIProvider>
+								</ThemeProvider>
+							</ConfigProvider>
+						</FilterProvider>
+					</ErrorProvider>
+				</LayoutProvider>
+			</QueryClientProvider>
+		</SessionProvider>
+	);
 }

@@ -9,6 +9,7 @@ This versatile template is an essential component of the [Ever Works Platform](h
 ## 🔗 Links
 
 - Demo: [https://demo.ever.works](https://demo.ever.works)
+- Ever Works website: [https://ever.works](https://ever.works) (WIP)
 
 ## Project Overview
 
@@ -16,8 +17,9 @@ This versatile template is an essential component of the [Ever Works Platform](h
 
 - **[TypeScript](https://www.typescriptlang.org)**
 - **[NodeJs](https://nodejs.org)**
-- [Next.js 15](https://nextjs.org/) with App Router
+- **Framework**: [Next.js 15](https://nextjs.org/) with App Router
 - **Authentication**: [Auth.js](https://authjs.dev) / [Supabase Auth](https://supabase.com/auth)
+- **API Client**: Secure Axios-based client with httpOnly cookies
 - **ORM**: [Drizzle](https://github.com/drizzle-team/drizzle-orm)
 - **Supported Databases**: [Supabase](https://supabase.com)/PostgreSQL/MySQL/SQLite
 - **Styling**: [Tailwind CSS](https://tailwindcss.com)
@@ -26,6 +28,8 @@ This versatile template is an essential component of the [Ever Works Platform](h
 - **Form Validation**: [Zod](https://zod.dev)
 - **Notifications/Emails Services**: [Novu](https://novu.co) / [Resend](https://resend.com)
 - **Hosting**: [Vercel](https://vercel.com)
+- **Payment Processing**: Stripe & LemonSqueezy
+- **Security**: ReCAPTCHA v2
 
 ### 📄 Project Structure
 
@@ -70,6 +74,28 @@ Automatic sync via GitHub integration:
 2. Changes are tracked via Git
 3. Updates occur periodically or on demand
 4. Requires a valid `GH_TOKEN` for private repos
+
+### Environment Configuration
+
+Create a `.env.local` file in the root directory with the following configuration:
+
+#### Basic Configuration
+```bash
+# Environment
+NODE_ENV=development
+
+# API Configuration
+NEXT_PUBLIC_API_BASE_URL="http://localhost:3000/api"
+API_TIMEOUT=10000
+API_RETRY_ATTEMPTS=3
+API_RETRY_DELAY=1000
+
+# Cookie Security
+COOKIE_SECRET="your-secure-cookie-secret"  # Generate with: openssl rand -base64 32
+COOKIE_DOMAIN="localhost"                  # In production: your-domain.com
+COOKIE_SECURE=false                        # In production: true
+COOKIE_SAME_SITE="lax"                    # In production: strict
+```
 
 ### Site Configuration (config.yml)
 
@@ -123,7 +149,7 @@ auth:
 cp .env.example .env.local
 ```
 
-1. Fill in your environment variables in `.env.local`:
+2. Fill in your environment variables in `.env.local`:
 
 ### Auth Setup
 
@@ -183,6 +209,265 @@ npm run dev
 
 The app will be available at [http://localhost:3000](http://localhost:3000/).
 
+## 💳 Payment Integration
+
+This template supports two payment providers: **Stripe** and **LemonSqueezy**. You can choose one or configure both.
+
+### Payment Provider Configuration
+
+The payment provider is configured in your site's config file (`.content/config.yml`):
+
+```yaml
+# Payment configuration
+payment:
+  provider: 'stripe'  # Options: 'stripe' | 'lemonsqueezy'
+
+# Pricing plans
+pricing:
+  free: 0
+  pro: 10
+  sponsor: 20
+```
+
+### Stripe Setup
+
+1. **Create Stripe Account**
+   - Visit [Stripe Dashboard](https://dashboard.stripe.com/)
+   - Create an account or sign in
+   - Get your API keys from the Developers section
+
+2. **Configure Environment Variables**
+```bash
+# Stripe Configuration
+STRIPE_SECRET_KEY="sk_test_your-stripe-secret-key"
+STRIPE_PUBLISHABLE_KEY="pk_test_your-stripe-publishable-key"
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_your-stripe-publishable-key"
+STRIPE_WEBHOOK_SECRET="whsec_your-webhook-secret"
+
+# Stripe Price IDs (create these in Stripe Dashboard)
+NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID="price_your-pro-price-id"
+NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID="price_your-sponsor-price-id"
+```
+
+3. **Create Products & Prices in Stripe**
+   - Go to Stripe Dashboard → Products
+   - Create products for each plan (Pro, Sponsor)
+   - Copy the Price IDs to your environment variables
+
+4. **Setup Webhooks**
+   - Go to Stripe Dashboard → Webhooks
+   - Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
+   - Select events: `checkout.session.completed`, `invoice.payment_succeeded`
+   - Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
+
+### LemonSqueezy Setup
+
+1. **Create LemonSqueezy Account**
+   - Visit [LemonSqueezy](https://lemonsqueezy.com/)
+   - Create an account and set up your store
+
+2. **Configure Environment Variables**
+```bash
+# LemonSqueezy Configuration
+LEMONSQUEEZY_API_KEY="your-lemonsqueezy-api-key"
+LEMONSQUEEZY_STORE_ID="your-store-id"
+LEMONSQUEEZY_WEBHOOK_SECRET="your-webhook-secret"
+
+# LemonSqueezy Product IDs
+NEXT_PUBLIC_LEMONSQUEEZY_PRO_PRODUCT_ID="your-pro-product-id"
+NEXT_PUBLIC_LEMONSQUEEZY_SPONSOR_PRODUCT_ID="your-sponsor-product-id"
+```
+
+3. **Create Products in LemonSqueezy**
+   - Go to your LemonSqueezy store
+   - Create products for each plan
+   - Copy the Product IDs to your environment variables
+
+4. **Setup Webhooks**
+   - Go to Settings → Webhooks
+   - Add webhook URL: `https://yourdomain.com/api/webhooks/lemonsqueezy`
+   - Copy webhook secret to environment variables
+
+### Switching Payment Providers
+
+To switch between payment providers:
+
+1. **Update config.yml**
+```yaml
+payment:
+  provider: 'lemonsqueezy'  # Change from 'stripe' to 'lemonsqueezy'
+```
+
+2. **Restart your application** for changes to take effect
+
+3. **Ensure environment variables** are configured for your chosen provider
+
+### Payment Features
+
+- ✅ **Subscription Management**: Create, update, cancel subscriptions
+- ✅ **Webhook Handling**: Automatic payment status updates
+- ✅ **Customer Portal**: Self-service billing management
+- ✅ **Multiple Plans**: Free, Pro, and Sponsor tiers
+- ✅ **Secure Processing**: PCI-compliant payment handling
+- ✅ **International Support**: Multiple currencies and payment methods
+
+## 🔒 Security & ReCAPTCHA
+
+### Security Notes
+
+1. **Cookie Security**
+   - httpOnly cookies are used for token storage
+   - Prevents XSS attacks by making tokens inaccessible to JavaScript
+   - Secure flag must be enabled in production
+   - SameSite policy helps prevent CSRF attacks
+
+2. **API Security**
+   - Automatic token refresh handling
+   - Request queue during token refresh
+   - Exponential backoff for retries
+   - Proper error handling and formatting
+
+3. **Environment Specific**
+   - Development uses relaxed security for local testing
+   - Production requires strict security settings
+   - Different cookie domains per environment
+   - CORS configuration required for production
+
+### ReCAPTCHA v2 Integration
+
+This template includes Google ReCAPTCHA v2 for form protection against spam and bots.
+
+#### Setup ReCAPTCHA
+
+1. **Get ReCAPTCHA Keys**
+   - Visit [Google ReCAPTCHA Console](https://www.google.com/recaptcha/admin/create)
+   - Create a new site with reCAPTCHA v2 ("I'm not a robot" checkbox)
+   - Add your domains (localhost for development, your domain for production)
+
+2. **Configure Environment Variables**
+```bash
+# ReCAPTCHA Configuration
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"  # Site key (public)
+RECAPTCHA_SECRET_KEY="6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"          # Secret key (private)
+```
+
+> 💡 **Development**: The keys above are Google's test keys that always pass validation
+
+#### ReCAPTCHA Features
+
+- ✅ **Form Protection**: Login, registration, and contact forms
+- ✅ **Server-side Verification**: Secure token validation
+- ✅ **React Query Integration**: Optimized API calls with caching
+- ✅ **Error Handling**: User-friendly error messages
+- ✅ **Responsive Design**: Works on all device sizes
+- ✅ **Accessibility**: Screen reader compatible
+
+#### Customization
+
+ReCAPTCHA can be enabled/disabled per form by modifying the component props:
+
+```tsx
+// Enable ReCAPTCHA
+<LoginForm showRecaptcha={true} />
+
+// Disable ReCAPTCHA
+<LoginForm showRecaptcha={false} />
+```
+
+## 🌐 API Client Architecture
+
+### Server Client Features
+
+The template includes a robust API client (`lib/api/server-client.ts`) with advanced features:
+
+#### Core Features
+- ✅ **Automatic Retries**: 3 attempts with exponential backoff
+- ✅ **Timeout Handling**: Configurable request timeouts
+- ✅ **Error Management**: Centralized error handling and logging
+- ✅ **TypeScript Support**: Fully typed API responses
+- ✅ **Request/Response Interceptors**: Middleware support
+
+#### Usage Examples
+
+```tsx
+import { serverClient, apiUtils } from '@/lib/api/server-client';
+
+// GET request
+const users = await serverClient.get<User[]>('/api/users');
+if (apiUtils.isSuccess(users)) {
+  console.log(users.data); // TypeScript knows this is User[]
+}
+
+// POST request with data
+const result = await serverClient.post('/api/auth/login', {
+  email: 'user@example.com',
+  password: 'password123'
+});
+
+// File upload
+const file = new File(['content'], 'document.pdf');
+const upload = await serverClient.upload('/api/upload', file);
+
+// Form data submission
+const contact = await serverClient.postForm('/api/contact', {
+  name: 'John Doe',
+  email: 'john@example.com',
+  message: 'Hello world'
+});
+```
+
+#### Specialized Clients
+
+```tsx
+// External API client (longer timeout, fewer retries)
+import { externalClient } from '@/lib/api/server-client';
+const external = await externalClient.get('https://api.external.com/data');
+
+// ReCAPTCHA client
+import { recaptchaClient } from '@/lib/api/server-client';
+const verification = await recaptchaClient.verify(token);
+
+// Custom client
+import { createApiClient } from '@/lib/api/server-client';
+const customClient = createApiClient('https://api.myservice.com', {
+  timeout: 30000,
+  retries: 5,
+  headers: { 'Authorization': 'Bearer token' }
+});
+```
+
+#### Configuration Options
+
+```tsx
+const client = new ServerClient('https://api.example.com', {
+  timeout: 10000,        // Request timeout (ms)
+  retries: 3,           // Number of retry attempts
+  retryDelay: 1000,     // Delay between retries (ms)
+  headers: {            // Default headers
+    'Authorization': 'Bearer token',
+    'X-API-Version': 'v2'
+  }
+});
+```
+
+### Using the API Client
+
+```typescript
+import { api } from 'lib/api/api-client';
+
+// Authentication
+await api.login({ email: 'user@example.com', password: 'password' });
+
+// Check authentication status
+if (await api.isAuthenticated()) {
+  // Make authenticated requests
+  const response = await api.get('/protected-endpoint');
+}
+
+// Logout
+await api.logout();
+```
+
 ### Developer Tools
 
 - **Database Studio**: `npm run db:studio`
@@ -209,6 +494,27 @@ The app will be available at [http://localhost:3000](http://localhost:3000/).
 - Configure providers in `auth.config.ts`
 - Protect routes via middleware
 - Customize auth pages in `app/[locale]/auth`
+
+#### Authentication Configuration
+```bash
+# Auth Endpoints
+AUTH_ENDPOINT_LOGIN="/auth/login"
+AUTH_ENDPOINT_REFRESH="/auth/refresh"
+AUTH_ENDPOINT_LOGOUT="/auth/logout"
+AUTH_ENDPOINT_CHECK="/auth/check"
+
+# JWT Configuration
+JWT_ACCESS_TOKEN_EXPIRES_IN=15m
+JWT_REFRESH_TOKEN_EXPIRES_IN=7d
+```
+
+#### CORS Configuration (Production)
+```bash
+# CORS Settings
+CORS_ORIGIN="https://your-frontend-domain.com"
+CORS_CREDENTIALS=true
+CORS_METHODS="GET,POST,PUT,DELETE,OPTIONS"
+```
 
 ## 🔗 Resources
 
@@ -270,4 +576,3 @@ You can also view a full list of our [contributors tracked by Github](https://gi
 ## ©️ Copyright
 
 #### Copyright © 2024-present, Ever Co. LTD. All rights reserved
-

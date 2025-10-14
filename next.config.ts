@@ -1,5 +1,8 @@
 import { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from '@sentry/nextjs';
+import { sentryWebpackPluginOptions } from './sentry.config';
+import { generateImageRemotePatterns } from './lib/utils/image-domains';
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -10,31 +13,21 @@ const nextConfig: NextConfig = {
   generateEtags: false,
   poweredByHeader: false,
   staticPageGenerationTimeout: 180,
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-        pathname: "/a/**",
-      },
-      {
-        protocol: "https",
-        hostname: "avatars.githubusercontent.com",
-        pathname: "/u/**",
-      },
-      {
-        protocol: "https",
-        hostname: "platform-lookaside.fbsbx.com",
-        pathname: "/platform/**",
-      },
-      {
-        protocol: "https",
-        hostname: "pbs.twimg.com",
-        pathname: "/**",
-      },
-    ],
+  webpack: (config, { isServer }) => {
+    config.ignoreWarnings = [
+      { module: /@supabase\/realtime-js/ }
+    ];
+    return config;
   },
-  /* config options here */
+  images: {
+    remotePatterns: generateImageRemotePatterns(),
+    // Allow SVG images
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Keep optimization enabled for better performance
+    unoptimized: false,
+  },
   async rewrites() {
     return [
       {
@@ -47,8 +40,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
+} satisfies NextConfig;
 
 const withNextIntl = createNextIntlPlugin();
 
-export default withNextIntl(nextConfig);
+// Apply plugins in the correct order
+const configWithIntl = withNextIntl(nextConfig);
+
+// Sentry configuration with type casting to avoid TypeScript errors
+const finalConfig = withSentryConfig(configWithIntl, sentryWebpackPluginOptions) as NextConfig;
+
+export default finalConfig;
