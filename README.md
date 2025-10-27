@@ -1,4 +1,7 @@
-# Ever Works Directory Website Template
+# Time Tracking - Software, Methodologies and Practices
+
+This is the source code for the directory website [timetrack.works](https://timetrack.works), based on the Ever Works Directory Website Template.  
+Please review the information below about the Ever Works Directory Website Template, available at: <https://github.com/ever-works/ever-works-website-template>.
 
 ## ⭐️ What is it?
 
